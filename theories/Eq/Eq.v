@@ -104,12 +104,12 @@ Section eqit.
         (REL: eqitF b1 b2 vclo sim ot1 (observe t2)):
       eqitF b1 b2 vclo sim ot1 (TauF t2)
   .
-  Hint Constructors eqitF.
+  Hint Constructors eqitF : itree.
 
   Definition eqit_ b1 b2 vclo sim :
     itree E R1 -> itree E R2 -> Prop :=
     fun t1 t2 => eqitF b1 b2 vclo sim (observe t1) (observe t2).
-  Hint Unfold eqit_.
+  Hint Unfold eqit_ : itree.
 
   (** [eqitF] and [eqit_] are both monotone. *)
 
@@ -120,7 +120,7 @@ Section eqit.
         (LE: sim <2= sim'):
     eqitF b1 b2 vclo' sim' x0 x1.
   Proof.
-    intros. induction IN; eauto.
+    intros. induction IN; eauto with itree.
   Qed.
 
   Lemma eqit__mono b1 b2 vclo (MON: monotone2 vclo) : monotone2 (eqit_ b1 b2 vclo).
@@ -150,15 +150,15 @@ Section eqit.
 End eqit.
 
 (* begin hide *)
-Hint Constructors eqitF.
-Hint Unfold eqit_.
+Hint Constructors eqitF : itree.
+Hint Unfold eqit_ : itree.
 Hint Resolve eqit__mono : paco.
 Hint Resolve eqit_idclo_mono : paco.
-Hint Unfold eqit.
-Hint Unfold eq_itree.
-Hint Unfold eutt.
-Hint Unfold euttge.
-Hint Unfold id.
+Hint Unfold eqit : itree.
+Hint Unfold eq_itree : itree.
+Hint Unfold eutt : itree.
+Hint Unfold euttge : itree.
+Hint Unfold id : itree.
 
 Ltac unfold_eqit :=
   (try match goal with [|- eqit_ _ _ _ _ _ _ _ ] => red end);
@@ -169,7 +169,7 @@ Definition flip_clo {A B C} clo r := @flip A B C (clo (@flip B A C r)).
 Lemma eqitF_flip {E R1 R2} (RR : R1 -> R2 -> Prop) b1 b2 vclo r:
   flip (eqitF (flip RR) b2 b1 (flip_clo vclo) (flip r)) <2= @eqitF E R1 R2 RR b1 b2 vclo r.
 Proof.
-  intros. induction PR; eauto.
+  intros. induction PR; eauto with itree.
 Qed.
 
 Lemma eqit_flip {E R1 R2} (RR : R1 -> R2 -> Prop) b1 b2:
@@ -177,7 +177,7 @@ Lemma eqit_flip {E R1 R2} (RR : R1 -> R2 -> Prop) b1 b2:
     eqit (flip RR) b2 b1 v u -> eqit RR b1 b2 u v.
 Proof.
   pcofix self; pstep. intros u v euv. punfold euv.
-  red in euv |- *. induction euv; pclearbot; eauto 7 with paco.
+  red in euv |- *. induction euv; pclearbot; eauto 7 with paco itree.
 Qed.
 
 Lemma eqit_mon {E R1 R2} RR RR' (b1 b2 b1' b2': bool)
@@ -187,10 +187,10 @@ Lemma eqit_mon {E R1 R2} RR RR' (b1 b2 b1' b2': bool)
   @eqit E R1 R2 RR b1 b2 <2= eqit RR' b1' b2'.
 Proof.
   pcofix self. pstep. intros u v euv. punfold euv.
-  red in euv |- *. induction euv; pclearbot; eauto 7 with paco.
+  red in euv |- *. induction euv; pclearbot; eauto 7 with paco itree.
 Qed.
 
-Hint Unfold flip.
+Hint Unfold flip : itree.
 
 (* end hide *)
 
@@ -223,10 +223,10 @@ Inductive eqit_trans_clo b1 b2 b1' b2' (r : itree E R1 -> itree E R2 -> Prop)
       (LERR2: forall x y y', RR2 y y' -> RR x y' -> RR x y)
   : eqit_trans_clo b1 b2 b1' b2' r t1 t2
 .
-Hint Constructors eqit_trans_clo.
+Hint Constructors eqit_trans_clo : itree.
 
 Definition eqitC b1 b2 := eqit_trans_clo b1 b2 false false.
-Hint Unfold eqitC.
+Hint Unfold eqitC : itree.
 
 Lemma eqitC_mon b1 b2 r1 r2 t1 t2
       (IN: eqitC b1 b2 r1 t1 t2)      
@@ -242,35 +242,35 @@ Lemma eqitC_wcompat b1 b2 vclo
       (MON: monotone2 vclo)
       (CMP: compose (eqitC b1 b2) vclo <3= compose vclo (eqitC b1 b2)):
   wcompatible2 (@eqit_ E R1 R2 RR b1 b2 vclo) (eqitC b1 b2).
-Proof.
-  econstructor. pmonauto.
+Proof with eauto with itree.
+  econstructor. (repeat (intros [] || intros ?); eauto with paco itree). (* TODO: pmonauto. *)
   intros. dependent destruction PR.
   punfold EQVl. punfold EQVr. unfold_eqit.
   hinduction REL before r; intros; clear t1' t2'.
   - remember (RetF r1) as x.
-    hinduction EQVl before r; intros; subst; try inv Heqx; eauto.
+    hinduction EQVl before r; intros; subst; try inv Heqx; [ | eauto with itree ].
     remember (RetF r3) as y.
-    hinduction EQVr before r; intros; subst; try inv Heqy; eauto.
+    hinduction EQVr before r; intros; subst; try inv Heqy...
   - remember (TauF m1) as x.
-    hinduction EQVl before r; intros; subst; try inv Heqx; try inv CHECK; eauto.
+    hinduction EQVl before r; intros; subst; try inv Heqx; try inv CHECK; [ | eauto with itree ].
     remember (TauF m3) as y.
-    hinduction EQVr before r; intros; subst; try inv Heqy; try inv CHECK; eauto.
+    hinduction EQVr before r; intros; subst; try inv Heqy; try inv CHECK; [ | eauto with itree ].
     pclearbot. econstructor. gclo.
-    econstructor; cycle -1; eauto with paco.
+    econstructor; eauto with paco itree.
   - remember (VisF e k1) as x.
-    hinduction EQVl before r; intros; subst; try dependent destruction Heqx; try inv CHECK; eauto.
+    hinduction EQVl before r; intros; subst; try dependent destruction Heqx; try inv CHECK; [ | eauto with itree ].
     remember (VisF e0 k3) as y.
-    hinduction EQVr before r; intros; subst; try dependent destruction Heqy; try inv CHECK; eauto.
+    hinduction EQVr before r; intros; subst; try dependent destruction Heqy; try inv CHECK; [ | eauto with itree ].
     econstructor. intros. pclearbot.
     eapply MON.
-    + apply CMP. econstructor; eauto.
+    + apply CMP. econstructor...
     + intros. apply gpaco2_clo, PR.
   - remember (TauF t1) as x.
-    hinduction EQVl before r; intros; subst; try inv Heqx; try inv CHECK; eauto.
-    pclearbot. punfold REL.
+    hinduction EQVl before r; intros; subst; try inv Heqx; try inv CHECK; [ | eauto with itree ].
+    pclearbot. punfold REL. eauto with paco itree.
   - remember (TauF t2) as y.
-    hinduction EQVr before r; intros; subst; try inv Heqy; try inv CHECK; eauto.
-    pclearbot. punfold REL.
+    hinduction EQVr before r; intros; subst; try inv Heqy; try inv CHECK; [ | eauto with itree ].
+    pclearbot. punfold REL. eauto with paco itree.
 Qed.
 
 Hint Resolve eqitC_wcompat : paco.
@@ -284,7 +284,7 @@ Hint Resolve eqit_idclo_compat : paco.
 Lemma eqitC_dist b1 b2:
   forall r1 r2, eqitC b1 b2 (r1 \2/ r2) <2= (eqitC b1 b2 r1 \2/ eqitC b1 b2 r2).
 Proof.
-  intros. destruct PR. destruct REL; eauto.
+  intros. destruct PR. destruct REL; eauto with itree.
 Qed.
 
 Hint Resolve eqitC_dist : paco.
@@ -299,13 +299,13 @@ Qed.
 
 End eqit_closure.
 
-Hint Unfold eqitC.
+Hint Unfold eqitC : itree.
 Hint Resolve eqitC_mon : paco.
 Hint Resolve eqitC_wcompat : paco.
 Hint Resolve eqit_idclo_compat : paco.
 Hint Resolve eqitC_dist : paco.
 Arguments eqit_clo_trans : clear implicits.
-Hint Constructors eqit_trans_clo.
+Hint Constructors eqit_trans_clo : itree.
 
 (** ** Properties of relations *)
 
@@ -320,7 +320,7 @@ Context {E : Type -> Type} {R: Type} (RR : R -> R -> Prop).
 Global Instance Reflexive_eqitF b1 b2 (sim : itree E R -> itree E R -> Prop)
 : Reflexive RR -> Reflexive sim -> Reflexive (eqitF RR b1 b2 id sim).
 Proof.
-  red. destruct x; constructor; eauto.
+  red. destruct x; constructor; eauto with itree.
 Qed.
 
 Global Instance Symmetric_eqitF b (sim : itree E R -> itree E R -> Prop)
@@ -344,7 +344,7 @@ Global Instance Reflexive_eqit_gen b1 b2 (r rg: itree E R -> itree E R -> Prop) 
   Reflexive RR -> Reflexive (gpaco2 (eqit_ RR b1 b2 id) (eqitC RR b1 b2) r rg).
 Proof.
   gcofix CIH. gstep; intros.
-  repeat red. destruct (observe x); eauto with paco.
+  repeat red. destruct (observe x); eauto with paco itree.
 Qed.
 
 Global Instance Reflexive_eqit b1 b2 : Reflexive RR -> Reflexive (@eqit E _ _ RR b1 b2).
@@ -363,7 +363,7 @@ Global Instance eq_sub_euttge:
 Proof.
   ginit. gcofix CIH. intros.
   punfold H0. gstep. red in H0 |- *.
-  hinduction H0 before CIH; subst; econstructor; try inv CHECK; pclearbot; eauto 7 with paco.
+  hinduction H0 before CIH; subst; econstructor; try inv CHECK; pclearbot; eauto 7 with paco itree.
 Qed.  
 
 Global Instance euttge_sub_eutt:
@@ -371,7 +371,7 @@ Global Instance euttge_sub_eutt:
 Proof.
   ginit. gcofix CIH. intros.
   punfold H0. gstep. red in H0 |- *.
-  hinduction H0 before CIH; subst; econstructor; pclearbot; eauto 7 with paco.
+  hinduction H0 before CIH; subst; econstructor; pclearbot; eauto 7 with paco itree.
 Qed.
 
 Global Instance eq_sub_eutt:
@@ -435,7 +435,7 @@ Qed.
 Global Instance eqit_observe b1 b2:
   Proper (eqit b1 b2 ==> going (eqit b1 b2)) (@observe E R).
 Proof.
-  constructor; punfold H.
+  constructor; punfold H. auto with paco itree.
 Qed.
 
 Global Instance eqit_tauF b1 b2:
@@ -447,7 +447,7 @@ Qed.
 Global Instance eqit_VisF b1 b2 {u} (e: E u) :
   Proper (pointwise_relation _ (eqit b1 b2) ==> going (eqit b1 b2)) (VisF e).
 Proof.
-  constructor; red in H. unfold eqit in *. pstep; econstructor; eauto.
+  constructor; red in H. unfold eqit in *. pstep; econstructor; eauto with itree.
 Qed.
 
 Global Instance observing_sub_eqit l r :
@@ -526,17 +526,19 @@ Qed.
 
 Lemma eqit_inv_tauLR {E R1 R2 RR} b1 b2 t1 t2 :
   @eqit E R1 R2 RR b1 b2 (Tau t1) (Tau t2) -> eqit RR b1 b2 t1 t2.
-Proof.
+Proof with eauto with itree.
   intros. punfold H. red in H. simpl in *.
   remember (TauF t1) as tt1. remember (TauF t2) as tt2.
   hinduction H before b2; intros; try discriminate.
-  - inv Heqtt1. inv Heqtt2. pclearbot. eauto.
-  - inv Heqtt1. inv H; eauto.
-    + pclearbot. punfold REL. pstep. red. simpobs. eauto.
-    + pstep. red. simpobs. econstructor; eauto. pstep_reverse. apply IHeqitF; eauto.
-  - inv Heqtt2. inv H; eauto.
-    + pclearbot. punfold REL. pstep. red. simpobs. eauto.    
-    + pstep. red. simpobs. econstructor; eauto. pstep_reverse. apply IHeqitF; eauto.    
+  - inv Heqtt1. inv Heqtt2. pclearbot...
+  - inv Heqtt1. inv H.
+    + pclearbot. punfold REL. pstep. red. simpobs...
+    + pstep. red. simpobs. econstructor; eauto. pstep_reverse. apply IHeqitF...
+    + idtac...
+  - inv Heqtt2. inv H.
+    + pclearbot. punfold REL. pstep. red. simpobs...
+    + idtac...
+    + pstep. red. simpobs. constructor; eauto. pstep_reverse. apply IHeqitF...
 Qed.
 
 Lemma eqit_tauL {E R1 R2 RR} b2 (t1 : itree E R1) (t2 : itree E R2) :
@@ -567,7 +569,7 @@ Qed.
 Inductive rcompose {R1 R2 R3} (RR1: R1->R2->Prop) (RR2: R2->R3->Prop) (r1: R1) (r3: R3) : Prop :=
 | rcompose_intro r2 (REL1: RR1 r1 r2) (REL2: RR2 r2 r3)
 .
-Hint Constructors rcompose.
+Hint Constructors rcompose : itree.
 
 Lemma trans_rcompose {R} RR (TRANS: Transitive RR):
   forall x y : R, rcompose RR RR x y -> RR x y.
@@ -579,38 +581,41 @@ Lemma eqit_trans {E R1 R2 R3} (RR1: R1->R2->Prop) (RR2: R2->R3->Prop) b1 b2 t1 t
       (INL: eqit RR1 b1 b2 t1 t2)
       (INR: eqit RR2 b1 b2 t2 t3):
   @eqit E _ _ (rcompose RR1 RR2) b1 b2 t1 t3.
-Proof.
+Proof with eauto with itree.
   revert_until b2. pcofix CIH. intros.
   pstep. punfold INL. punfold INR. red in INL, INR |- *. genobs_clear t3 ot3.
   hinduction INL before CIH; intros; subst; clear t1 t2; eauto.
   - remember (RetF r2) as ot.
-    hinduction INR before CIH; intros; inv Heqot; eauto with paco.
+    hinduction INR before CIH; intros; inv Heqot; eauto with paco itree.
   - assert (DEC: (exists m3, ot3 = TauF m3) \/ (forall m3, ot3 <> TauF m3)).
     { destruct ot3; eauto; right; red; intros; inv H. }
     destruct DEC as [EQ | EQ].
     + destruct EQ as [m3 ?]; subst.
       econstructor. right. pclearbot. eapply CIH; eauto with paco.
-      eapply eqit_inv_tauLR. eauto.
+      eapply eqit_inv_tauLR...
     + inv INR; try (exfalso; eapply EQ; eauto; fail).
       econstructor; eauto.
       pclearbot. punfold REL. red in REL.
       hinduction REL0 before CIH; intros; try (exfalso; eapply EQ; eauto; fail).
       * remember (RetF r1) as ot.
-        hinduction REL0 before CIH; intros; inv Heqot; eauto with paco.
+        hinduction REL0 before CIH; intros; inv Heqot; eauto with paco itree.
       * remember (VisF e k1) as ot.
-        hinduction REL0 before CIH; intros; dependent destruction Heqot; eauto with paco.
+        hinduction REL0 before CIH; intros; dependent destruction Heqot; [ | eauto with itree ].
         econstructor. intros. right.
-        destruct (REL v), (REL0 v); try contradiction. eauto.
+        destruct (REL v), (REL0 v); try contradiction...
       * eapply IHREL0; eauto. pstep_reverse.
         destruct b1; inv CHECK0.
-        apply eqit_inv_tauR. eauto.
+        apply eqit_inv_tauR...
   - remember (VisF e k2) as ot.
-    hinduction INR before CIH; intros; dependent destruction Heqot; eauto.
+    hinduction INR before CIH; intros; dependent destruction Heqot; [ | eauto with itree ].
     econstructor. intros.
-    destruct (REL v), (REL0 v); try contradiction; eauto.
+    destruct (REL v), (REL0 v); try contradiction...
   - remember (TauF t0) as ot.
-    hinduction INR before CIH; intros; dependent destruction Heqot; eauto.
-    eapply IHINL; eauto. pclearbot. punfold REL.
+    hinduction INR before CIH; intros; dependent destruction Heqot...
+  - remember (TauF t0) as ot.
+    hinduction INR before CIH; intros; dependent destruction Heqot;
+      [ | eauto with itree .. ].
+    eapply IHINL; eauto. pclearbot. punfold REL. auto with paco itree.
 Qed.
 
 Global Instance Transitive_eqit {E : Type -> Type} {R: Type} (RR : R -> R -> Prop) (b1 b2: bool):
@@ -671,7 +676,7 @@ Global Instance geuttge_cong_euttge {E R1 R2 RR1 RR2 RS} r rg
   Proper (euttge RR1 ==> eq_itree RR2 ==> flip impl)
          (gpaco2 (@eqit_ E R1 R2 RS true false id) (eqitC RS true false) r rg).
 Proof.
-  repeat intro. guclo eqit_clo_trans.
+  repeat intro. guclo eqit_clo_trans. eauto with itree.
 Qed.
 
 Global Instance geuttge_cong_euttge_eq {E R1 R2 RS} r rg:
@@ -687,7 +692,7 @@ Global Instance geutt_cong_euttge {E R1 R2 RR1 RR2 RS} r rg
   Proper (euttge RR1 ==> euttge RR2 ==> flip impl)
          (gpaco2 (@eqit_ E R1 R2 RS true true id) (eqitC RS true true) r rg).
 Proof.
-  repeat intro. guclo eqit_clo_trans.
+  repeat intro. guclo eqit_clo_trans. eauto with itree.
 Qed.
 
 Global Instance geutt_cong_euttge_eq {E R1 R2 RS} r rg:
@@ -789,10 +794,10 @@ Proof.
   split; intros H.
   - punfold H. red in H. simpl in *. pstep. red.
     remember (TauF t1) as ot1. remember (TauF t2) as ot2.
-    hinduction H before RR; intros; subst; try inv Heqot1; try inv Heqot2; eauto.
+    hinduction H before RR; intros; subst; try inv Heqot1; try inv Heqot2.
     + pclearbot. punfold REL.
-    + inv H; eauto.
-    + inv H; eauto.
+    + inv H; eauto with itree.
+    + inv H; eauto with itree.
   - pstep. constructor; auto.
 Qed.
 
@@ -804,7 +809,7 @@ Proof.
   split; intros H.
   - pstep. econstructor. left. apply H.
   - punfold H. inv H; auto_inj_pair2; subst; auto.
-    intros. pclearbot. eauto.
+    intros. pclearbot. eauto with itree.
 Qed.
 
 Lemma eqit_Ret b1 b2 (r1 : R1) (r2 : R2) :
@@ -824,7 +829,7 @@ Inductive eqit_bind_clo b1 b2 (r : itree E R1 -> itree E R2 -> Prop) :
       (REL: forall u1 u2, RU u1 u2 -> r (k1 u1) (k2 u2))
   : eqit_bind_clo b1 b2 r (ITree.bind t1 k1) (ITree.bind t2 k2)
 .
-Hint Constructors eqit_bind_clo.
+Hint Constructors eqit_bind_clo : itree.
 
 Lemma eqit_clo_bind b1 b2 vclo
       (MON: monotone2 vclo)
@@ -840,8 +845,8 @@ Proof.
   - guclo eqit_clo_trans.
     econstructor; auto_ctrans_eq; try (rewrite <- !itree_eta; reflexivity). 
     eauto with paco.
-  - gstep. econstructor. eauto with paco.
-  - gstep. econstructor. eauto 7 with paco.
+  - gstep. econstructor. eauto with paco itree.
+  - gstep. econstructor. eauto 7 with paco itree.
   - destruct b1; try discriminate.
     guclo eqit_clo_trans.
     econstructor; auto_ctrans_eq; cycle -1; eauto; try reflexivity.
@@ -863,7 +868,7 @@ Qed.
 End eqit_h.
 
 Arguments eqit_clo_bind : clear implicits.
-Hint Constructors eqit_bind_clo.
+Hint Constructors eqit_bind_clo : itree.
 
 Lemma eqit_bind' {E R1 R2 S1 S2} (RR : R1 -> R2 -> Prop) b1 b2
       (RS : S1 -> S2 -> Prop)
@@ -922,7 +927,7 @@ Lemma bind_ret_r {E R} :
 Proof.
   ginit. gcofix CIH. intros.
   rewrite !unfold_bind. gstep. repeat red.
-  genobs s os. destruct os; simpl; eauto with paco.
+  genobs s os. destruct os; simpl; eauto with paco itree.
 Qed.
 
 Lemma bind_ret_r' {E R} (u : itree E R) (f : R -> R) :
@@ -939,8 +944,8 @@ Lemma bind_bind {E R S T} :
     ITree.bind (ITree.bind s k) h ≅ ITree.bind s (fun r => ITree.bind (k r) h).
 Proof.
   ginit. gcofix CIH. intros. rewrite !unfold_bind.
-  gstep. repeat red. destruct (observe s); simpl; eauto with paco.
-  apply reflexivity.
+  gstep. repeat red. destruct (observe s); simpl; eauto with paco itree.
+  reflexivity.
 Qed.
 
 Lemma map_map {E R S T}: forall (f : R -> S) (g : S -> T) (t : itree E R),

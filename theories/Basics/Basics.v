@@ -21,6 +21,8 @@ Import MonadNotation.
 Local Open Scope monad.
 (* end hide *)
 
+Create HintDb itree_basics discriminated.
+
 (** ** Parametric functions *)
 
 (** A notation for a certain class of parametric functions.
@@ -54,7 +56,7 @@ Variant sum_rel {A1 A2 B1 B2 : Type}
 .
 Arguments inl_morphism {A1 A2 B1 B2 RA RB}.
 Arguments inr_morphism {A1 A2 B1 B2 RA RB}.
-Hint Constructors sum_rel.
+Hint Constructors sum_rel : itree_basics.
 
 (** Logical relation for the [prod] type. *)
 Variant prod_rel {A1 A2 B1 B2 : Type}
@@ -64,7 +66,7 @@ Variant prod_rel {A1 A2 B1 B2 : Type}
 .
 
 Arguments prod_morphism {A1 A2 B1 B2 RA RB}.
-Hint Constructors prod_rel.
+Hint Constructors prod_rel : itree_basics.
 
 
 (* SAZ: TODO: Move this elsewhere, it belong with the Basics *)

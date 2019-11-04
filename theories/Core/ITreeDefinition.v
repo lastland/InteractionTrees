@@ -13,6 +13,8 @@ Set Contextual Implicit.
 Set Primitive Projections.
 (* end hide *)
 
+Create HintDb itree discriminated.
+
 (** ** The type of interaction trees *)
 
 (** An [itree E R] is the denotation of a program as coinductive
