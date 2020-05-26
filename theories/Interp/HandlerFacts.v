@@ -26,19 +26,22 @@ Import ITreeNotations.
 
 Open Scope itree_scope.
 
+Set Universe Polymorphism.
 (* end hide *)
 
 Section HandlerCategory.
 
 Local Opaque eutt ITree.bind' interp ITree.trigger.
 
-Instance Proper_Cat_Handler {A B C}
+Set Printing Universes.
+Instance Proper_Cat_Handler@{i j} {A B C : Type@{i} -> Type@{j}}
   : @Proper (Handler A B -> Handler B C -> Handler A C)
             (eq2 ==> eq2 ==> eq2)
             cat.
 Proof.
   cbv; intros.
-  apply eutt_interp; auto.
+  Show Universes.
+  apply (eutt_interp B C x0 y0 _ T (x T a) (y T a)). auto.
 Qed.
 
 Instance CatIdR_Handler : CatIdR Handler.

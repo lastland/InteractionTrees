@@ -31,6 +31,8 @@ From ITree Require Export
 Import ITreeNotations.
 Local Open Scope itree.
 
+Set Universe Polymorphism.
+
 (* TODO: Send to paco *)
 Global Instance Symmetric_bot2 (A : Type) : @Symmetric A bot2.
 Proof. auto. Qed.
@@ -72,7 +74,10 @@ Section eqit.
       Then the desired equivalence relation is obtained by setting
       [RR := eq] (with [R1 = R2]).
    *)
-  Context {E : Type -> Type} {R1 R2 : Type} (RR : R1 -> R2 -> Prop).
+
+  Universe i j k m.
+  
+  Context {E : Type@{i} -> Type@{j}} {R1 R2 : Type@{k}} (RR : R1 -> R2 -> Prop).
 
   (** We also need to do some gymnastics to work around the
       two-layered definition of [itree]. We first define a
@@ -84,7 +89,12 @@ Section eqit.
       pattern-matching is not allowed on [itree].
    *)
 
-  Inductive eqitF (b1 b2: bool) vclo (sim : itree E R1 -> itree E R2 -> Prop) :
+  Set Printing Universes.
+
+  Inductive eqitF (b1 b2: bool)
+            (vclo : (itree@{i j k m} E R1 -> itree@{i j k m} E R2 -> Prop) ->
+                    itree@{i j k m} E R1 -> itree@{i j k m} E R2 -> Prop)
+            (sim : itree@{i j k m} E R1 -> itree@{i j k m} E R2 -> Prop) :
     itree' E R1 -> itree' E R2 -> Prop :=
   | EqRet r1 r2
        (REL: RR r1 r2):
@@ -92,7 +102,7 @@ Section eqit.
   | EqTau m1 m2
         (REL: sim m1 m2):
       eqitF b1 b2 vclo sim (TauF m1) (TauF m2)
-  | EqVis {u} (e : E u) k1 k2
+  | EqVis {u : Type@{i}} (e : E u) k1 k2
         (REL: forall v, vclo sim (k1 v) (k2 v) : Prop):
       eqitF b1 b2 vclo sim (VisF e k1) (VisF e k2)
   | EqTauL t1 ot2
@@ -172,8 +182,11 @@ Proof.
   intros. induction PR; eauto.
 Qed.
 
-Lemma eqit_flip {E R1 R2} (RR : R1 -> R2 -> Prop) b1 b2:
-  forall (u : itree E R1) (v : itree E R2),
+Set Printing Universes.
+
+Polymorphic Lemma eqit_flip@{i j k m} {E : Type@{i} -> Type@{j}} {R1 R2 : Type@{k}}
+            (RR : R1 -> R2 -> Prop) (b1 b2 : bool):
+  forall (u : itree@{i j k m} E R1) (v : itree@{i j k m} E R2),
     eqit (flip RR) b2 b1 v u -> eqit RR b1 b2 u v.
 Proof.
   pcofix self; pstep. intros u v euv. punfold euv.
@@ -250,10 +263,13 @@ Proof.
   econstructor. pmonauto.
   intros. dependent destruction PR.
   punfold EQVl. punfold EQVr. unfold_eqit.
-  hinduction REL before r; intros; clear t1' t2'.
+  remember (observe t1') as t1''. remember (observe t2') as t2''.
+  clear Heqt1'' Heqt2'' t1' t2'.
+  hinduction REL before r; (* Somehow doing induction without remembering does not work now. *)
+    intros.
   - remember (RetF r1) as x.
     hinduction EQVl before r; intros; subst; try inv Heqx; eauto.
-    remember (RetF r3) as y.
+    remember (RetF r3) as y. remember (observe t2) as t2'.
     hinduction EQVr before r; intros; subst; try inv Heqy; eauto.
   - remember (TauF m1) as x.
     hinduction EQVl before r; intros; subst; try inv Heqx; try inv CHECK; eauto.
@@ -269,7 +285,7 @@ Proof.
     eapply MON.
     + apply CMP. econstructor; eauto.
     + intros. apply gpaco2_clo, PR.
-  - remember (TauF t1) as x.
+  - remember (TauF t1) as x. 
     hinduction EQVl before r; intros; subst; try inv Heqx; try inv CHECK; eauto.
     pclearbot. punfold REL.
   - remember (TauF t2) as y.

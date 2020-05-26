@@ -23,6 +23,8 @@ Import ITreeNotations.
 
 Open Scope itree_scope.
 
+Set Universe Polymorphism.
+
 (* end hide *)
 
 (** ** Handler combinators *)

@@ -33,6 +33,8 @@ From ITree Require Import
      Interp.TranslateFacts.
 
 Import ITreeNotations.
+Set Universe Polymorphism.
+Set Printing Universes.
 (* end hide *)
 
 Instance Equivalence_eq_Handler {E F : Type -> Type}
@@ -96,9 +98,11 @@ Lemma interp_trigger {E F : Type -> Type} {R : Type}
       (e : E R) :
   interp f (ITree.trigger e) ≳ f _ e.
 Proof.
-  unfold ITree.trigger. rewrite interp_vis.
+  unfold ITree.trigger.
+  rewrite (@interp_vis _ _ _ f _ e (fun x => Ret x)).
   setoid_rewrite interp_ret.
-  setoid_rewrite tau_euttge. rewrite bind_ret_r.
+  setoid_rewrite tau_euttge.
+  rewrite (bind_ret_r (f R e)).
   reflexivity.
 Qed.
 
@@ -259,7 +263,8 @@ Proof.
   revert t. einit. ecofix CIH. intros.
   rewrite unfold_interp. rewrite (itree_eta t) at 2.
   destruct (observe t); try estep.
-  unfold ITree.trigger. simpl. rewrite bind_vis.
+  unfold ITree.trigger. simpl.
+  rewrite (bind_vis _ _ e (fun x => Ret x)).
   evis. intros. rewrite bind_ret_l, tau_euttge.
   auto with paco.
 Qed.
@@ -278,7 +283,9 @@ Proof.
   - rewrite interp_tau. gstep. constructor. auto with paco.
   - rewrite interp_bind.
     guclo eqit_clo_bind.
-    apply pbc_intro_h with (RU := eq).
+    apply (pbc_intro_h false false
+                       (gpaco2 (eqit_ eq false false id) (eqitC eq false false) bot2 r)
+                       _ _ eq (interp g (f X e)) (interp g (f X e))).
     + reflexivity.
     + intros ? _ [].
       rewrite interp_tau.
@@ -309,7 +316,8 @@ Proof.
   rewrite unfold_translate.
   rewrite unfold_interp.
   destruct (observe t); try estep.
-  unfold ITree.trigger. simpl. rewrite bind_vis.
+  unfold ITree.trigger. simpl.
+  rewrite (bind_vis _ _ (f X e) (fun x : X => Ret x)).
   evis. intros. rewrite bind_ret_l, tau_euttge. auto with paco.
 Qed.
 

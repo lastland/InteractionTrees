@@ -1,5 +1,9 @@
 (** * Category operations *)
 
+(* begin hide *)
+Set Universe Polymorphism.
+(* end hide *)
+
 (** Interfaces for programming with categories. *)
 
 (** A category is represented by a type of objects [obj], and a type

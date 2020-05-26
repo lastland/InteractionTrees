@@ -12,6 +12,7 @@ From ITree Require Import
      Indexed.Sum.
 
 Set Universe Polymorphism.
+Set Printing Universes.
 (* end hide *)
 
 (** The name of the category. *)

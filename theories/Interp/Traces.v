@@ -16,6 +16,9 @@ From ITree Require Import
      Eq.SimUpToTaus
      Eq.Shallow.
 
+Set Universe Polymorphism.
+Set Polymorphic Inductive Cumulativity.
+
 Local Open Scope itree.
 (* end hide *)
 

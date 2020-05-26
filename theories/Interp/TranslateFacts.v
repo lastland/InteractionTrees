@@ -25,12 +25,16 @@ From Coq Require Import
      Setoid
      Morphisms
      RelationClasses.
+
+Set Universe Polymorphism.
+Set Printing Universes.
 (* end hide *)
 
 Section TranslateFacts.
-  Context {E F : Type -> Type}.
-  Context {R : Type}.
-  Context (h : E ~> F).
+  
+Context {E F : Type -> Type}.
+Context {R : Type}.
+Context (h : E ~> F).
 
 Lemma unfold_translate_ : forall (t : itree E R),
       observing eq
@@ -60,7 +64,7 @@ Proof.
   rewrite itree_eta, unfold_translate. cbn. reflexivity.
 Qed.
 
-Lemma translate_vis : forall X (e:E X) (k : X -> itree E R),
+Lemma translate_vis : forall (X : Type) (e:E X) (k : X -> itree E R),
     translate h (Vis e k) ≅ Vis (h _ e) (fun x => translate h (k x)).
 Proof.
   intros X e k.
@@ -74,7 +78,7 @@ Proof.
   intros x y H.
   rewrite itree_eta, (itree_eta (translate h y)), !unfold_translate, <-!itree_eta.
   punfold H. gstep. red in H |- *.
-  destruct (observe x); dependent destruction H; try discriminate;
+  destruct (observe y); dependent destruction H; try discriminate;
     pclearbot; simpobs; simpl; eauto 7 with paco.
 Qed.
 
@@ -202,10 +206,13 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma translate_trigger {E F G} `{E -< F} :
-  forall X (e: E X) (h: F ~> G),
+Set Printing Universes.
+Lemma translate_trigger {E F G : Type -> Type} `{E -< F} :
+  forall (X : Type) (e: E X) (h: F ~> G),
     translate h (trigger e) ≈ trigger (h _ (subevent X e)).
 Proof.
-  intros; unfold trigger; rewrite translate_vis; setoid_rewrite translate_ret; reflexivity.
+  intros; unfold trigger.
+  rewrite translate_vis.
+  setoid_rewrite translate_ret; reflexivity.
 Qed.
 

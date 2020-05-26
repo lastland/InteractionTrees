@@ -38,6 +38,9 @@ From ITree Require Import
      Basics.Basics
      Core.ITreeDefinition
      Indexed.Relation.
+
+Set Universe Polymorphism.
+Set Printing Universes.
 (* end hide *)
 
 (** ** Translate *)
@@ -57,15 +60,18 @@ From ITree Require Import
 
 (** A plain event morphism [E ~> F] defines an itree morphism
     [itree E ~> itree F]. *)
-Definition translateF {E F R} (h : E ~> F) (rec: itree E R -> itree F R) (t : itreeF E R _) : itree F R  :=
+Definition translateF@{i j k m}
+           {E F : Type@{i} -> Type@{j}} {R} (h : E ~> F)
+           (rec: itree@{i j k m} E R -> itree@{i j k m} F R)
+           (t : itreeF@{i j k m} E R _) : itree@{i j k m} F R :=
   match t with
   | RetF x => Ret x
   | TauF t => Tau (rec t)
   | VisF e k => Vis (h _ e) (fun x => rec (k x))
   end.
 
-Definition translate {E F} (h : E ~> F)
-  : itree E ~> itree F
+Definition translate@{i j k m} {E F : Type@{i} -> Type@{j}} (h : E ~> F)
+  : itree@{i j k m} E ~> itree@{i j k m} F
   := fun R => cofix translate_ t := translateF h translate_ (observe t).
 
 Arguments translate {E F} h [T].

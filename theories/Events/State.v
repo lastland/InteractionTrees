@@ -21,6 +21,8 @@ Import ITree.Basics.Basics.Monads.
 Import ITreeNotations.
 
 Open Scope itree_scope.
+
+Set Universe Polymorphism.
 (* end hide *)
 
 (* Stateful handlers [E ~> stateT S (itree F)] and morphisms

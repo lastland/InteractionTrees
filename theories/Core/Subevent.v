@@ -9,6 +9,9 @@ From ITree Require Import
      Core.ITreeDefinition
      Indexed.Sum
      Indexed.Function.
+
+Set Universe Polymorphism.
+Set Printing Universes.
 (* end hide *)
 
 (** Automatic application of commutativity and associativity for
@@ -29,7 +32,7 @@ From ITree Require Import
 Notation Subevent E F := (@ReSum (Type -> Type) IFun E F)
   (only parsing).
 Notation "E -< F" := (Subevent E F)
-  (at level 92, left associativity) : type_scope.
+                       (at level 92, left associativity) : type_scope.
 
 Definition subevent {E F : Type -> Type} `{E -< F} : E ~> F := resum _.
 

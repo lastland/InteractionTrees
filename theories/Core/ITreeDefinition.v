@@ -11,6 +11,10 @@ From ITree Require Import Basics.
 Set Implicit Arguments.
 Set Contextual Implicit.
 Set Primitive Projections.
+Set Universe Polymorphism.
+Set Polymorphic Inductive Cumulativity.
+
+Set Printing Universes.
 (* end hide *)
 
 (** ** The type of interaction trees *)
@@ -23,14 +27,15 @@ Set Primitive Projections.
 
 Section itree.
 
-  Context {E : Type -> Type} {R : Type}.
+  Universe i j k.
+  Context {E : Type@{i} -> Type@{j}} {R : Type@{k}}.
 
   (** The type [itree] is defined as the final coalgebra ("greatest
       fixed point") of the functor [itreeF]. *)
-  Variant itreeF (itree : Type) :=
-  | RetF (r : R)
+  Variant itreeF@{ix} (itree : Type@{ix}) :=
+  | RetF (r : R@{k})
   | TauF (t : itree)
-  | VisF {X : Type} (e : E X) (k : X -> itree)
+  | VisF {X : Type@{i}} (e : E X) (k : X -> itree)
   .
 
   (** We define non-recursive types such as [itreeF] using the [Variant]
@@ -38,8 +43,8 @@ Section itree.
       [Variant] does not generate any induction schemes (which are
       unnecessary). *)
 
-  CoInductive itree : Type := go
-  { _observe : itreeF itree }.
+  CoInductive itree@{ix} : Type := go
+  { _observe : itreeF@{ix} itree }.
 
   (** A primitive projection, such as [_observe], must always be
       applied. To be used as a function, wrap it explicitly:
@@ -73,11 +78,11 @@ Arguments itreeF _ _ : clear implicits.
 
 (** An [itree'] is a "forced" [itree]. It is the type of inputs
     of [go], and outputs of [observe]. *)
-Notation itree' E R := (itreeF E R (itree E R)).
+Definition itree'@{i j k m} E R := (itreeF@{i j k m} E R (itree@{i j k m} E R)).
 
 (** We wrap the primitive projection [_observe] in a function
     [observe]. *)
-Definition observe {E R} (t : itree E R) : itree' E R := @_observe E R t.
+Definition observe@{i j k m} {E R} (t : itree@{i j k m} E R) : itree' E R := @_observe E R t.
 
 (** Note that when [_observe] appears unapplied in an expression,
     it is implicitly wrapped in a function. However, there is no
@@ -214,8 +219,11 @@ Definition map {E R S} (f : R -> S)  (t : itree E R) : itree E S :=
   bind t (fun x => Ret (f x)).
 
 (** Atomic itrees triggering a single event. *)
-Definition trigger {E : Type -> Type} : E ~> itree E :=
-  fun R e => Vis e (fun x => Ret x).
+Definition trigger@{i j k m} {E : Type@{i} -> Type@{j}} : E ~> itree@{i j k m} E.
+  intros R e.
+  refine (Vis e _).
+  exact (fun x => Ret x).
+Defined. (** Not sure why [fun R e => Vis e (fun x => Ret x)] does not work here. *)
 
 (** Ignore the result of a tree. *)
 Definition ignore {E R} : itree E R -> itree E unit :=

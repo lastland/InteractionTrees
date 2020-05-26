@@ -13,7 +13,7 @@ From ITree Require Export
      Indexed.FunctionFacts
      Interp.TranslateFacts
      Interp.InterpFacts
-     Interp.HandlerFacts
+(*     Interp.HandlerFacts *)
      Interp.RecursionFacts
      .
 

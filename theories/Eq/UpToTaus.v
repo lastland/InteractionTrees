@@ -43,6 +43,7 @@ From ITree Require Import
 
 Import ITreeNotations.
 Local Open Scope itree.
+Set Universe Polymorphism.
 (* end hide *)
 
 

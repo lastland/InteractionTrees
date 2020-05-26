@@ -31,6 +31,8 @@ Import ITreeNotations.
 Open Scope itree_scope.
 
 Import Monads.
+
+Set Universe Polymorphism.
 (* end hide *)
 
 Definition _interp_state {E F S R}

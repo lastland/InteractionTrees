@@ -19,6 +19,7 @@ From Coq Require Import
      Setoids.Setoid
      Relations.Relations
      JMeq.
+Set Universe Polymorphism.
 (* end hide *)
 
 (* This exists in the stdlib as [ProofIrrelevance.inj_pair2], but we reprove

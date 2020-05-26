@@ -29,6 +29,8 @@ From ITree Require Import
 
 Import ITreeNotations.
 
+Set Universe Polymorphism.
+
 Section Facts.
 
 Context {D E : Type -> Type} (ctx : D ~> itree (D +' E)).
@@ -131,7 +133,7 @@ Qed.
 Theorem mrec_as_interp {T} (d : D T) :
   mrec ctx d ≈ interp (mrecursive ctx) (ctx _ d).
 Proof.
-  apply interp_mrec_as_interp.
+  apply (interp_mrec_as_interp (ctx T d)).
 Qed.
 
 Lemma interp_mrecursive {T} (d : D T) :
@@ -200,7 +202,7 @@ Proof.
   unfold rec.
   rewrite mrec_as_interp.
   apply eq_sub_eutt.
-  eapply eq_itree_interp.
+  eapply (eq_itree_interp (mrecursive (calling' f))).
   - red. unfold case_; intros ? [[] | ]; reflexivity.
   - reflexivity.
 Qed.
